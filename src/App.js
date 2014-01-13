@@ -36,7 +36,7 @@ Ext.define('CustomApp', {
     _makeStore: function(){
          var storyStore = Ext.create('Rally.data.WsapiDataStore', {
             model: 'UserStory',
-            fetch: ['FormattedID','Name'],
+            fetch: ['FormattedID','Name', 'PlanEstimate', 'TaskEstimateTotal'],
             pageSize: 100,
             autoLoad: true,
             filters: [this.getContext().getTimeboxScope().getQueryFilter()],
@@ -54,6 +54,8 @@ Ext.define('CustomApp', {
                         FormattedID: story.get('FormattedID'),
                         _ref: story.get("_ref"),  
                         Name: story.get('Name'),
+                        PlanEstimate: story.get('PlanEstimate'),
+                        TaskEstimateTotal: story.get('TaskEstimateTotal')
                     };
                     userStories.push(s);
                  });
@@ -70,13 +72,25 @@ Ext.define('CustomApp', {
             xtype: 'rallygrid',
             itemId: 'storygrid',
             store: storyStore,
+            features: [{
+                ftype: 'summary'
+            }],
             columnCfgs: [
                 {
                    text: 'Formatted ID', dataIndex: 'FormattedID', xtype: 'templatecolumn',
                     tpl: Ext.create('Rally.ui.renderer.template.FormattedIDTemplate')
                 },
                 {
-                    text: 'Name', dataIndex: 'Name',flex:2
+                    text: 'Name', dataIndex: 'Name',summaryRenderer: function() {
+		    return "Total:"; 
+                    },
+                    flex:2
+                },
+                {
+                    text: 'PlanEstimate', dataIndex: 'PlanEstimate',summaryType: 'sum',flex:2
+                },
+                {
+                    text: 'Task Estimate Total', dataIndex: 'TaskEstimateTotal',summaryType: 'sum',flex:2
                 }
             ],
             listeners: {
@@ -104,6 +118,8 @@ Ext.define('CustomApp', {
             }); 
     },
      _onTestSetsLoaded: function(store, data){
+        console.log('store...',store);
+	console.log('data...',data);
         var testSets = [];
         var pendingTestCases = data.length;
          console.log(data.length);
